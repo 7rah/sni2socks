@@ -1,0 +1,93 @@
+on: [push]
+
+name: sni2socks
+
+jobs:
+  windows:
+    name: windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: ilammy/msvc-dev-cmd@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Build
+        env:
+          RUSTFLAGS: -C target-cpu=amdfam10 #-Cprofile-generate=pgodata -Cpanic=abort
+        run: 
+          cargo build --release
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sni2socks.exe
+          path: target/release/sni2socks.exe
+          
+
+  android:
+    name: android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: aarch64-linux-android
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          env: 
+            RUSTFLAGS='-C target-cpu=cortex-a53'
+          command: build
+          args: --release
+      - uses: actions/upload-artifact@v2
+        with:
+           name: android-sni2socks
+           path: target/aarch64-linux-android/release/sni2socks
+
+  mipsel:
+    name: mipsel
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sni2socks
+        uses: actions/checkout@v2
+        
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: mipsel-unknown-linux-musl
+          override: true
+    
+      - uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: build
+          env:
+            RUSTFLAGS='-C target-cpu=mips32r2'
+          args: --release
+
+      - uses: actions/upload-artifact@v2
+        with:
+           name: mipsel-sni2socks
+           path: target/mipsel-unknown-linux-musl/release/sni2socks
+  
+  linux:
+    name: linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          env: 
+            RUSTFLAGS='-C target-cpu=cascadelake'
+          command: build
+          args: --release
+      - uses: actions/upload-artifact@v2
+        with:
+           name: linux-sni2socks
+           path: target/release/sni2socks
