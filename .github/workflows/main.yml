@@ -40,11 +40,7 @@ jobs:
           env: 
             RUSTFLAGS='-C target-cpu=cortex-a53'
           command: build
-          args: --release
-          
-      - name: list
-        run: tree
-        
+          args: --release --target aarch64-linux-android
       - uses: actions/upload-artifact@v2
         with:
            name: android-sni2socks
@@ -69,11 +65,7 @@ jobs:
           command: build
           env:
             RUSTFLAGS='-C target-cpu=mips32r2'
-          args: --release
-          
-      - name: list
-        run: tree
-
+          args: --release --target mipsel-unknown-linux-musl
       - uses: actions/upload-artifact@v2
         with:
            name: mipsel-sni2socks
