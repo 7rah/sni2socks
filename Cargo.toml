@@ -1,0 +1,19 @@
+[package]
+name = "sni2socks"
+version = "0.1.0"
+authors = ["zrah <zrah@protonmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tls-parser = "0.10.0"
+smol = "1.2.5"
+env_logger = "0.8"
+log = "0.4"
+fast-socks5 = "0.4.2"
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+panic = "abort"
