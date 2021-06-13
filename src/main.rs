@@ -54,7 +54,7 @@ async fn serve(stream: TcpStream) -> std::io::Result<()> {
 
 
     let config = Config::default();
-    let socks = Socks5Stream::connect("192.168.1.1:1081", domain, 443, config)
+    let socks = Socks5Stream::connect("192.168.1.1:1080", domain, 443, config)
         .await
         .map_err(new_error)?;
 
