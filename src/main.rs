@@ -24,7 +24,7 @@ async fn main() -> Result<()> {
         println!("Expect socks5 proxy addr,use default(127.0.0.1:1080)");
         "127.0.0.1:1080".to_string()
     });
-    let listener = TcpListener::bind("127.0.0.1:443").await.unwrap();
+    let listener = TcpListener::bind(listen).await.unwrap();
 
     loop {
         let proxy = proxy.clone();
