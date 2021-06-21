@@ -16,7 +16,11 @@ use tokio_socks::tcp::Socks5Stream;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
-    let proxy = env::args().nth(1).unwrap_or_else(|| {
+    let listen = env::args().nth(1).unwrap_or_else(|| {
+        println!("Expect listen addr,use default(127.0.0.1:443)");
+        "127.0.0.1:443".to_string()
+    });
+    let proxy = env::args().nth(2).unwrap_or_else(|| {
         println!("Expect socks5 proxy addr,use default(127.0.0.1:1080)");
         "127.0.0.1:1080".to_string()
     });
