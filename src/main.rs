@@ -6,9 +6,8 @@ use tls_parser::{
     parse_tls_extensions, parse_tls_plaintext, TlsExtension, TlsMessage::Handshake,
     TlsMessageHandshake::ClientHello,
 };
-use tokio::io::copy;
 use tokio::io::split;
-use tokio::io::AsyncWriteExt;
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use tokio::net::TcpListener;
 use tokio::net::TcpStream;
 use tokio::spawn;
@@ -48,7 +47,7 @@ async fn serve(proxy: &str, inbound: TcpStream) -> Result<()> {
 
     let (mut ri, mut wi) = split(inbound);
     let (mut ro, mut wo) = split(outbound);
-    let c1 = common::copy_tcp(&mut ri, &mut wo);
+    let c1 = copy_tcp(&mut ri, &mut wo);
     let c2 = copy_tcp(&mut ro, &mut wi);
 
     let e = tokio::select! {
