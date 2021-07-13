@@ -18,11 +18,11 @@ use tokio_socks::tcp::Socks5Stream;
 async fn main() -> Result<()> {
     let listen = env::args().nth(1).unwrap_or_else(|| {
         println!("Expect listen addr,use default(127.0.0.1:443)");
-        "127.0.0.1:443".to_string()
+        "0.0.0.0:443".to_string()
     });
     let proxy = env::args().nth(2).unwrap_or_else(|| {
         println!("Expect socks5 proxy addr,use default(127.0.0.1:1080)");
-        "127.0.0.1:1080".to_string()
+        "192.168.1.1:1080".to_string()
     });
     let listener = TcpListener::bind(listen).await.unwrap();
 
@@ -39,6 +39,7 @@ async fn main() -> Result<()> {
     }
 }
 
+#[inline]
 async fn serve(proxy: &str, inbound: TcpStream) -> Result<()> {
     let buf = &mut [0u8; 2048];
     inbound.peek(buf).await?;
@@ -47,21 +48,24 @@ async fn serve(proxy: &str, inbound: TcpStream) -> Result<()> {
 
     let (mut ri, mut wi) = split(inbound);
     let (mut ro, mut wo) = split(outbound);
-    let client_to_server = async {
-        copy(&mut ri, &mut wo).await?;
-        wo.shutdown().await
-    };
+    let c1 = common::copy_tcp(&mut ri, &mut wo);
+    let c2 = copy_tcp(&mut ro, &mut wi);
 
-    let server_to_client = async {
-        copy(&mut ro, &mut wi).await?;
-        wi.shutdown().await
+    let e = tokio::select! {
+        e = c1 => {e}
+        e = c2 => {e}
     };
+    e?;
 
-    tokio::try_join!(client_to_server, server_to_client)?;
+    let mut inbound = ri.unsplit(wi);
+    let mut outbound = ro.unsplit(wo);
+    let _ = inbound.shutdown().await;
+    let _ = outbound.shutdown().await;
 
     Ok(())
 }
 
+#[inline]
 fn parse_sni(buf: &[u8]) -> Result<String> {
     let (_, res) = parse_tls_plaintext(&buf).map_err(|_| anyhow!("unexpected protocol"))?;
     match &res.msg[0] {
@@ -86,4 +90,21 @@ fn parse_sni(buf: &[u8]) -> Result<String> {
         }
         _ => Err(anyhow!("unexpected handshake type")),
     }
+}
+
+#[inline]
+async fn copy_tcp<R: AsyncRead + Unpin, W: AsyncWrite + Unpin>(
+    r: &mut R,
+    w: &mut W,
+) -> Result<()> {
+    let mut buf = [0u8; 16384 * 3];
+    loop {
+        let len = r.read(&mut buf).await?;
+        if len == 0 {
+            break;
+        }
+        w.write(&buf[..len]).await?;
+        w.flush().await?;
+    }
+    Ok(())
 }
