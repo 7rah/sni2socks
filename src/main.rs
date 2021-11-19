@@ -21,7 +21,7 @@ async fn main() -> Result<()> {
     });
     let proxy = env::args().nth(2).unwrap_or_else(|| {
         println!("Expect socks5 proxy addr,use default(192.168.1.1:1080)");
-        "192.168.1.1:1080".to_string()
+        "127.0.0.1:1080".to_string()
     });
     let listener = TcpListener::bind(listen).await.unwrap();
 
@@ -96,7 +96,7 @@ async fn copy_tcp<R: AsyncRead + Unpin, W: AsyncWrite + Unpin>(
     r: &mut R,
     w: &mut W,
 ) -> Result<()> {
-    let mut buf = [0u8; 16384 * 3];
+    let mut buf = [0u8; 16384];
     loop {
         let len = r.read(&mut buf).await?;
         if len == 0 {
