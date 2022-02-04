@@ -20,8 +20,8 @@ async fn main() -> Result<()> {
         "0.0.0.0:443".to_string()
     });
     let proxy = env::args().nth(2).unwrap_or_else(|| {
-        println!("Expect socks5 proxy addr,use default(192.168.1.1:1080)");
-        "127.0.0.1:1080".to_string()
+        println!("Expect socks5 proxy addr,use default(192.168.1.11:1080)");
+        "192.168.1.11:1080".to_string()
     });
     let listener = TcpListener::bind(listen).await.unwrap();
 
